@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 // import '..login.js'; 
+import { FaSignOutAlt } from "react-icons/fa";
 import '../App.js';
 
 const courses = [
@@ -117,37 +118,51 @@ function App() {
       <div id="course-container">
         <div id="top-bar">
           <h1 id="welcome">Welcome {name}</h1>
-          <h1>UC Merced</h1>
-          <a href = "../login.js"><h1>Sign Out</h1></a>
+          <div className = 'img-container'>
+            <img id = "logo" src = "https://nationalnutgrower.com/wp-content/uploads/2024/03/UC-Merced-logo-rectangle-1024x262.png"></img>
+          </div>
+          <a id = "s-out" href = "../login.js"><h1 id = "s-out-in">Sign out<FaSignOutAlt/></h1></a>
         </div>
 
         <div className = 'content-container'>
-          <div className = 'course-view'>
-            <p onClick={() => setShowCourseView(true)}>Courses</p>
-            <p onClick={()=> setShowCourseView(false)}>Add Coure</p>
+        <div className = 'course-view'>
+          <p 
+            onClick={() => setShowCourseView(true)} 
+            style={showCourseView 
+              ? { backgroundColor: '#f5f5f5'} 
+              : { backgroundColor: 'white'}
+            }
+            className="px-4 py-2 rounded-lg font-medium"
+          >
+            Courses
+          </p>
+          <p 
+            onClick={() => setShowCourseView(false)} 
+            style={showCourseView 
+              ? { backgroundColor: 'white'} 
+              : { backgroundColor: '#f5f5f5'}
+            }
+            className="px-4 py-2 rounded-lg font-medium"
+          >Add Coure</p>
           </div>
 
           {/* cond ? (true) : (false) */}
           {showCourseView ? (
-            <div id="stu-courses" className="course-section">
+            <div id="stu-courses">
               <div id="course-section">
                 <CourseTable data={rows}/>
               </div>
             </div> 
             ) : (
-            <div id="add-courses" className="course-section">
+            <div id="add-courses">
               <div id="course-section">
                 <AddCourseTable data={addRows}/>
               </div>
             </div>
           )}
-
-          
-
-          
+        
         </div>
         
-
       </div>
     </div>
   );
