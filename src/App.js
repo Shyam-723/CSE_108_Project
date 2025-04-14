@@ -17,10 +17,8 @@ function App() {
           </li>
         </ul>
       </nav>
-
-
       <Routes>
-        <Route path="/login" element={<Login/>} />
+        <Route path="/login" element={<Login />} />
         <Route path="/student" element={<StudentView />} />
       </Routes>
     </div>
