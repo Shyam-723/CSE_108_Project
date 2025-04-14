@@ -10,7 +10,7 @@ function App() {
       <nav>
         <ul>
           <li>
-            <Link to="/">Login</Link>
+            <Link to="/login">Login</Link>
           </li>
           <li>
             <Link to="/student">Student View</Link>
@@ -20,7 +20,7 @@ function App() {
 
 
       <Routes>
-        <Route path="/" element={<Login/>} />
+        <Route path="/login" element={<Login/>} />
         <Route path="/student" element={<StudentView />} />
       </Routes>
     </div>
