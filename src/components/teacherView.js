@@ -22,7 +22,7 @@ function TeacherView() {
 
     // modal 
     const [stuName, setStuName] = useState(''); 
-    const [modal, setModal] = useState(true); 
+    const [modal, setModal] = useState(false); 
       
     const name = 'Teacher Name'; 
     
@@ -44,7 +44,7 @@ function TeacherView() {
                             name={row.name}
                             grade={row.grade}
                             onStudentClick={onStudentClick}
-                            onEditClick={onEditClick}
+                            onEditClick={handleOpenEditModal}
                         />
                     ))}
                 </tbody>
@@ -115,10 +115,16 @@ function TeacherView() {
         setShowCourseView(false);
     };
 
-    const handleEditClick = (studentName) => {
+    const handleOpenEditModal = (studentName) => {
         console.log(`Editing student: ${studentName}`);
+        setStuName(studentName);
+        setModal(true); 
         
-    };
+    }; 
+
+    const handleCloseEditModal = () => { 
+        setModal(false); 
+    }; 
 
     return (
         <div className="app-container">
@@ -164,24 +170,31 @@ function TeacherView() {
                         <StudentTable 
                             data={infoRows} 
                             onStudentClick={() => {}} 
-                            onEditClick={handleEditClick}
+                            onEditClick={handleOpenEditModal}
                         />
                     </div>
                 )}
             </div>
             
             {/* change grade modal */}
-            {/* <div className = 'grade-modal'>
-                <div className = 'e-title'>
-                    <h2>EDIT GRADE</h2>
+
+            {/* Modal with overlay */}
+            {modal && (
+                <div className="modal-overlay" onClick={handleCloseEditModal}>
+                    <div className="grade-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="e-title">
+                            <h2>EDIT GRADE</h2>
+                        </div>
+                        <div className="e-info">
+                            <h3 id="e-student-name">Student {stuName} name</h3>
+                            <input placeholder='92' id="e-grade-input"></input>
+                        </div>
+                        <button id="sub-btn" onClick={handleCloseEditModal}>Submit</button>
+                    </div>
                 </div>
-                <div className = 'e-info'>
-                    <h3 id = "e-student-name">Student {stuName} name</h3>
-                    <input placeholder='92' id = "e-grade-input"></input>
-                </div>
-                <button id = "sub-btn" >Submit</button>
-                
-            </div> */}
+            )}
+
+            
 
 
         </div>
