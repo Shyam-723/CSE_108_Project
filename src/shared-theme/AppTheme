@@ -1,0 +1,54 @@
+import { createTheme } from '@mui/material/styles';
+
+const academicTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#003366',
+      contrastText: '#ffffff',
+    },
+    secondary: {
+      main: '#FFCC00',
+    },
+    background: {
+      default: '#ffffff',
+    },
+    text: {
+      primary: '#003366',
+      secondary: '#444444',
+    },
+  },
+  typography: {
+    fontFamily: 'Georgia, serif',
+    h4: {
+      fontWeight: 700,
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '8px',
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+        containedPrimary: {
+          '&:hover': {
+            backgroundColor: '#FFCC00',
+            color: '#003366',
+          },
+        },
+        outlinedPrimary: {
+          borderColor: '#003366',
+          color: '#003366',
+          '&:hover': {
+            backgroundColor: '#003366',
+            color: '#ffffff',
+          },
+        },
+      },
+    },
+  },
+});
+
+export default academicTheme;
