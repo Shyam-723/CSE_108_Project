@@ -11,7 +11,7 @@ const courses = [
 ];
 
 const addCourse = [
-  {course: 'Physics 009', teacher: 'Susan B', time: 'TR 11:00-11:50 AM', enrolled: '5/10', add: '+'},
+  {course: 'Physics 009', teacher: 'Susan B', time: 'TR 11:00-11:50 AM', enrolled: '5/10', add: '-'},
   {course: 'Math 131', teacher: 'Mr.B', time: 'TR 11:00-11:50 AM', enrolled: '10/10', add: '+'},
   {course: 'CSE 120', teacher: 'Susan B', time: 'TR 11:00-11:50 AM', enrolled: '5/10', add: '+'},
 ]

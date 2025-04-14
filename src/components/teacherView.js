@@ -22,6 +22,7 @@ function TeacherView() {
 
     // modal 
     const [stuName, setStuName] = useState(''); 
+    const [stuGrade, setStuGrade] = useState(''); 
     const [modal, setModal] = useState(false); 
       
     const name = 'Teacher Name'; 
@@ -84,7 +85,7 @@ function TeacherView() {
         const {course, teacher, time, enrolled, onClick} = props;
         return (
             <tr className="table-row">
-                <td style={{ textDecoration: 'underline', cursor: 'pointer'}}
+                <td style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer'}}
                     onClick={() => onClick(course)}>{course}
                 </td> 
                 <td>{teacher}</td>
@@ -103,7 +104,7 @@ function TeacherView() {
                 <td>
                     <FaPencil 
                         style={{ cursor: 'pointer', color: '#90EE90'}}
-                        onClick={() => onEditClick(name)}
+                        onClick={() => onEditClick(name, grade)}    
                     />
                 </td>
             </tr>
@@ -115,11 +116,16 @@ function TeacherView() {
         setShowCourseView(false);
     };
 
-    const handleOpenEditModal = (studentName) => {
+    const handleOpenEditModal = (studentName, studentGrade) => {
         console.log(`Editing student: ${studentName}`);
         setStuName(studentName);
+        setStuGrade(studentGrade); 
         setModal(true); 
         
+    }; 
+
+    const editGrade = (e) => {
+        handleCloseEditModal(); 
     }; 
 
     const handleCloseEditModal = () => { 
@@ -186,10 +192,15 @@ function TeacherView() {
                             <h2>EDIT GRADE</h2>
                         </div>
                         <div className="e-info">
-                            <h3 id="e-student-name">Student {stuName} name</h3>
-                            <input placeholder='92' id="e-grade-input"></input>
+                            <h3 id="e-student-name">{stuName}</h3>
+                            <input 
+                                placeholder={stuGrade} 
+                                id="e-grade-input"
+                                value={stuGrade}
+                                onChange={(e) => setStuGrade(e.target.value)}
+                            ></input>
                         </div>
-                        <button id="sub-btn" onClick={handleCloseEditModal}>Submit</button>
+                        <button id="sub-btn" onClick={editGrade}>Submit</button>
                     </div>
                 </div>
             )}
