@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaSignOutAlt, FaPlus, FaMinus } from 'react-icons/fa';
+import { AppContext } from '../App';
 import '../App.css';
 
 const Row = ({ course, teacher, time, enrolled, onDrop }) => (
@@ -113,26 +114,12 @@ function StudentView() {
   const [addRows, setAddRows] = useState([]);
   const [showCourseView, setShowCourseView] = useState(true);
   const [message, setMessage] = useState('');
-  const [studentName, setStudentName] = useState('Student');
   
-  // Get username from location state if available
-  const location = useLocation();
-  const username = location.state?.username || 'student'; // Default to 'student' if not provided
+  const { username, handleLogout } = useContext(AppContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Set the student name
-    setStudentName(username);
-    
     // Load initial data
-    if (showCourseView) {
-      fetchEnrolledCourses();
-    } else {
-      fetchSchoolCourses();
-    }
-  }, [username]);
-
-  // Fetch data based on view selection
-  useEffect(() => {
     if (showCourseView) {
       fetchEnrolledCourses();
     } else {
@@ -218,11 +205,17 @@ function StudentView() {
     }
   };
 
+  // Handle logout
+  const handleSignOut = () => {
+    handleLogout();
+    navigate('/login');
+  };
+
   return (
     <div className="app-container">
       <div id="course-container">
         <div id="top-bar">
-          <h1 id="welcome">Welcome {studentName}</h1>
+          <h1 id="welcome">Welcome {username}</h1>
           <div className="img-container">
             <img
               id="logo"
@@ -230,12 +223,14 @@ function StudentView() {
               alt="UC Merced Logo"
             />
           </div>
-          <Link id="s-out" to="/login">
+          <button id="s-out" onClick={handleSignOut}>
             <h1 id="s-out-in">
               Sign out <FaSignOutAlt />
             </h1>
-          </Link>
+          </button>
         </div>
+
+        {message && <p className="message">{message}</p>}
 
         <div className="content-container">
           <div className="course-view">
@@ -260,8 +255,6 @@ function StudentView() {
               Add Course
             </p>
           </div>
-
-          {message && <p className="message">{message}</p>}
 
           {showCourseView ? (
             <div id="stu-courses">

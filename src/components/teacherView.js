@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaSignOutAlt, FaArrowAltCircleLeft } from "react-icons/fa";
 import { FaPencil } from "react-icons/fa6";
+import { AppContext } from '../App';
 
 function TeacherView() {
     const [rows, setRows] = useState([]);
@@ -9,21 +10,16 @@ function TeacherView() {
     const [showCourseView, setShowCourseView] = useState(true);
     const [currentCourse, setCurrentCourse] = useState('');
     const [message, setMessage] = useState('');
-    const [teacherName, setTeacherName] = useState('');
 
     // modal stuff
     const [stuName, setStuName] = useState(''); 
     const [stuGrade, setStuGrade] = useState(''); 
     const [modal, setModal] = useState(false);
     
-    // Get username from location state if available
-    const location = useLocation();
-    const username = location.state?.username || 'teacher'; // Default to 'teacher' if not provided
+    const { username, handleLogout } = useContext(AppContext);
+    const navigate = useNavigate();
     
     useEffect(() => {
-        // Set the teacher name
-        setTeacherName(username);
-        
         // Fetch teacher courses
         fetchTeacherCourses();
     }, [username]);
@@ -67,7 +63,7 @@ function TeacherView() {
     };
 
     const StudentTable = (props) => {
-        const {data, onStudentClick, onEditClick} = props;
+        const {data, onEditClick} = props;
         
         if (data.length === 0) {
             return <p>No students found for this course.</p>;
@@ -88,7 +84,6 @@ function TeacherView() {
                             key={index}
                             name={row.name}
                             grade={row.grade}
-                            onStudentClick={onStudentClick}
                             onEditClick={handleOpenEditModal}
                         />
                     ))}
@@ -147,10 +142,10 @@ function TeacherView() {
     
     // student info row component
     const InfoRow = (props) => {
-        const {name, grade, onStudentClick, onEditClick} = props;
+        const {name, grade, onEditClick} = props;
         return (
             <tr className="table-row">
-                <td onClick={() => onStudentClick(name)}>{name}</td>
+                <td>{name}</td>
                 <td>{grade}</td>
                 <td>
                     <FaPencil 
@@ -207,17 +202,23 @@ function TeacherView() {
         setModal(false); 
     }; 
 
+    // Handle logout
+    const handleSignOut = () => {
+        handleLogout();
+        navigate('/login');
+    };
+
     return (
         <div className="app-container">
             <div id="course-container">
                 <div id="top-bar">
-                    <h1 id="welcome">Welcome {teacherName}</h1>
+                    <h1 id="welcome">Welcome {username}</h1>
                     <div className="img-container">
                         <img id="logo" src="https://nationalnutgrower.com/wp-content/uploads/2024/03/UC-Merced-logo-rectangle-1024x262.png" alt="UC Merced Logo"></img>
                     </div>
-                    <Link id="s-out" to="/login">
+                    <button id="s-out" onClick={handleSignOut}>
                         <h1 id="s-out-in">Sign out <FaSignOutAlt/></h1>
-                    </Link>
+                    </button>
                 </div>
 
                 {message && <p className="message">{message}</p>}
@@ -252,7 +253,6 @@ function TeacherView() {
                         </div>
                         <StudentTable 
                             data={infoRows} 
-                            onStudentClick={() => {}} 
                             onEditClick={handleOpenEditModal}
                         />
                     </div>

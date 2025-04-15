@@ -90,10 +90,10 @@ USERS = {
     "Mr.B":    {"password": "123456", "role": "teacher"}
 }
 courses = [
-    {"course": "Physics 009", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10", "add": "-"},
-    {"course": "Math 131", "teacher": "Mr.B", "time": "TR 11:00-11:50 AM", "enrolled": "10/10", "add": "+"},
-    {"course": "CSE 120", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10", "add": "+"},
-    {"course": "Physics 008", "teacher": "Susan B", "time": "TR 9:00-9:50 AM", "enrolled": "6/10", "add": "+"}
+    {"course": "Physics 009", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "3/10", "add": "-"},
+    {"course": "Math 131", "teacher": "Mr.B", "time": "TR 11:00-11:50 AM", "enrolled": "3/10", "add": "+"},
+    {"course": "CSE 120", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "3/10", "add": "+"},
+    {"course": "Physics 008", "teacher": "Susan B", "time": "TR 9:00-9:50 AM", "enrolled": "3/10", "add": "+"}
 ]
 
 student_grades = {
@@ -108,6 +108,11 @@ student_grades = {
         {"name": "student 3", "grade": "82"}
     ],
     "CSE 120": [
+        {"name": "student 1", "grade": "88"},
+        {"name": "student 2", "grade": "76"},
+        {"name": "student 3", "grade": "95"}
+    ], 
+    "Math 131": [
         {"name": "student 1", "grade": "88"},
         {"name": "student 2", "grade": "76"},
         {"name": "student 3", "grade": "95"}

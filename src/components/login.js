@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AppContext } from '../App';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -15,9 +17,6 @@ import Card from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 import AppTheme from '../shared-theme/AppTheme.js';
 import ColorModeSelect from '../shared-theme/ColorModeSelect.js';
-import { useNavigate } from 'react-router-dom';
-//import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
-
 
 const SignInContainer = styled(Stack)(({ theme }) => ({
   height: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
@@ -43,20 +42,13 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function Login(props) {
-  const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
-  const [open, setOpen] = React.useState(false);
+  const [emailError, setEmailError] = useState(false);
+  const [emailErrorMessage, setEmailErrorMessage] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+
+  const { handleLogin } = useContext(AppContext);
   const navigate = useNavigate();
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
   
   const handleSubmit = (event) => {
     event.preventDefault(); // prevent default form behavior
@@ -99,17 +91,19 @@ export default function Login(props) {
       )
       .then(({ status, body }) => {
         if (status === 200) {
-          if (props.onLogin) {
-            props.onLogin(body.role);
-          }
+          // Use context method to handle login
+          handleLogin({
+            username: username,
+            role: body.role
+          });
         
-          // Navigate with username state
+          // Navigate based on role
           if (body.role === 'student') {
-            navigate('/student', { state: { username: username } });
+            navigate('/student');
           } else if (body.role === 'teacher') {
-            navigate('/teacher', { state: { username: username } });
+            navigate('/teacher');
           } else if (body.role === 'admin') {
-            navigate('/admin', { state: { username: username } });
+            navigate('/admin');
           } else {
             alert('Unknown role: ' + body.role);
           }
@@ -196,7 +190,6 @@ export default function Login(props) {
               Sign in
             </Button>
           </Box>
-          
         </Card>
       </SignInContainer>
     </AppTheme>
