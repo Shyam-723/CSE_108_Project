@@ -1,7 +1,8 @@
 import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Login from './components/login.js';
 import StudentView from './components/studentView.js';
+import TeacherView from './components/teacherView.js'
 import './App.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/student" element={<StudentView />} />
+        <Route path="/teacher" element={<TeacherView />} />
       </Routes>
     </div>
   );
