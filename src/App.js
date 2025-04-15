@@ -16,6 +16,9 @@ function App() {
           <li>
             <Link to="/student">Student View</Link>
           </li>
+          <li>
+            <Link to="/teacher">Teacher View</Link>
+          </li>
         </ul>
       </nav>
       <Routes>
