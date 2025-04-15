@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-
+CORS(app)
 #SQLite database intializiation
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -20,7 +20,7 @@ USERS = {
 # Josh - Login Page needs to do a "POST API" request to /api/login
 @app.route('/api/login', methods=['POST'])
 def login():
-    data.request.json()
+    data = request.get_json()
 
     # Josh - Login Page needs to submit the username and password when doing API call
     username = data.get('username')

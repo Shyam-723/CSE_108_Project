@@ -74,7 +74,7 @@ export default function Login(props) {
     setOpen(false);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     if (emailError || passwordError) {
       event.preventDefault();
       return;
@@ -84,7 +84,7 @@ export default function Login(props) {
       email: data.get('email'),
       password: data.get('password'),
     });
-  };
+  }
 
   const validateInputs = () => {
     const email = document.getElementById('email');
@@ -109,7 +109,7 @@ export default function Login(props) {
       setPasswordError(false);
       setPasswordErrorMessage('');
     }
-
+    
     return isValid;
   };
 

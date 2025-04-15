@@ -15,6 +15,7 @@ import Card from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 import AppTheme from '../shared-theme/AppTheme.js';
 import ColorModeSelect from '../shared-theme/ColorModeSelect.js';
+import { useNavigate } from 'react-router-dom';
 //import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
 
 
@@ -47,6 +48,7 @@ export default function Login(props) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -56,18 +58,60 @@ export default function Login(props) {
     setOpen(false);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+  
     if (emailError || passwordError) {
-      event.preventDefault();
       return;
     }
+    const form = event.target;
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
+    const username = data.get('email')?.trim();
+    const password = data.get('password')?.trim();
+  
+    if (!username || !password) {
+      // Show error to user
+      return;
+    }
+  
+    try {
+      const response = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({"username": username, "password": password }),
+      });
+  
+      if (response.ok) {
+        const returnData = await response.json();
+        const role = returnData.role?.toLowerCase();
+  
+        switch (role) {
+          case 'student':
+            navigate('/student');
+            break;
+          case 'teacher':
+            navigate('/teacher');
+            break;
+          case 'admin':
+            navigate('/admin');
+            break;
+          default:
+            navigate('/login');
+        }
+      } else {
+        console.error('Login failed:', await response.text());
+        // Display login error on UI
+      }
+    } catch (error) {
+      console.error('Error during login:', error);
+      // Show connection error on UI
+    }
   };
-
+  
+  
+  /*
   const validateInputs = () => {
     const email = document.getElementById('email');
     const password = document.getElementById('password');
@@ -94,7 +138,7 @@ export default function Login(props) {
 
     return isValid;
   };
-
+  */
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
@@ -158,7 +202,8 @@ export default function Login(props) {
               type="submit"
               fullWidth
               variant="contained"
-              onClick={validateInputs}
+              //onClick={validateInputs}
+              //onClick={handleSubmit}
             >
               Sign in
             </Button>
