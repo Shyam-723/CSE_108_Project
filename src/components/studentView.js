@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FaSignOutAlt } from 'react-icons/fa';
-import '../App.js';
+import '../App.css';
 
 // Row for enrolled courses
 const Row = ({ course, teacher, time, enrolled }) => (
-  <tr className="table-row">
+  <tr>
     <td>{course}</td>
     <td>{teacher}</td>
     <td>{time}</td>
@@ -13,16 +13,16 @@ const Row = ({ course, teacher, time, enrolled }) => (
   </tr>
 );
 
-// Row for courses available for signup
+// Row for available courses
 const AddRow = ({ course, teacher, time, enrolled, add, onSignup }) => (
-  <tr className="table-row">
+  <tr>
     <td>{course}</td>
     <td>{teacher}</td>
     <td>{time}</td>
     <td>{enrolled}</td>
     <td>
       {add === '+' ? (
-        <button onClick={() => onSignup(course)}>{add}</button>
+        <button onClick={() => onSignup(course)}>Add</button>
       ) : (
         add
       )}
@@ -30,124 +30,106 @@ const AddRow = ({ course, teacher, time, enrolled, add, onSignup }) => (
   </tr>
 );
 
-// Table displaying enrolled courses
+// Table for enrolled courses
 const CourseTable = ({ data }) => (
   <table>
     <thead>
       <tr>
-        <th>Course Name</th>
+        <th>Course</th>
         <th>Teacher</th>
         <th>Time</th>
-        <th>Enrollment</th>
+        <th>Enrolled</th>
       </tr>
     </thead>
     <tbody>
-      {data.map((row, index) => (
-        <Row
-          key={index}
-          course={row.course}
-          teacher={row.teacher}
-          time={row.time}
-          enrolled={row.enrolled}
-        />
+      {data.map((course, index) => (
+        <Row key={index} {...course} />
       ))}
     </tbody>
   </table>
 );
 
-// Table displaying courses offered by the school
+// Table for addable courses
 const AddCourseTable = ({ data, onSignup }) => (
   <table>
     <thead>
       <tr>
-        <th>Course Name</th>
+        <th>Course</th>
         <th>Teacher</th>
         <th>Time</th>
-        <th>Enrollment</th>
-        <th>Add Course</th>
+        <th>Enrolled</th>
+        <th>Add</th>
       </tr>
     </thead>
     <tbody>
-      {data.map((row, index) => (
-        <AddRow
-          key={index}
-          course={row.course}
-          teacher={row.teacher}
-          time={row.time}
-          enrolled={row.enrolled}
-          add={row.add}
-          onSignup={onSignup}
-        />
+      {data.map((course, index) => (
+        <AddRow key={index} {...course} onSignup={onSignup} />
       ))}
     </tbody>
   </table>
 );
 
-function App() {
-  // State for courses the student is enrolled in
-  const [rows, setRows] = useState([]);
-  // State for courses available to add
-  const [addRows, setAddRows] = useState([]);
-  // Toggle between "Courses" and "Add Course" views
-  const [showCourseView, setShowCourseView] = useState(true);
-  // For status or error messages
+export default function StudentView() {
+  const navigate = useNavigate();
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [availableCourses, setAvailableCourses] = useState([]);
+  const [showMyCourses, setShowMyCourses] = useState(true);
   const [message, setMessage] = useState('');
-  // Hardcoded student name for demonstration
-  const name = 'Rahsaan';
 
-  // Fetch data from back end based on the view selected
+  const username = localStorage.getItem('username');
+  const role = localStorage.getItem('role');
+
+  // Redirect if not a student
   useEffect(() => {
-    if (showCourseView) {
-      // Fetch courses the student is enrolled in
-      fetch('http://localhost:5000/api/student/courses')
-        .then((res) => res.json())
-        .then((data) => setRows(data))
-        .catch((err) =>
-          console.error('Error fetching enrolled courses:', err)
-        );
-    } else {
-      // Fetch all courses offered by the school
-      fetch('http://localhost:5000/api/school/courses')
-        .then((res) => res.json())
-        .then((data) => setAddRows(data))
-        .catch((err) =>
-          console.error('Error fetching school courses:', err)
-        );
+    if (role !== 'student') {
+      navigate('/login');
     }
-  }, [showCourseView]);
+  }, [role, navigate]);
 
-  // Handler for signing up for a course
+  useEffect(() => {
+    const url = showMyCourses
+      ? 'http://localhost:5000/api/student/courses'
+      : 'http://localhost:5000/api/school/courses';
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (showMyCourses) setEnrolledCourses(data);
+        else setAvailableCourses(data);
+      })
+      .catch((err) => console.error('Error:', err));
+  }, [showMyCourses]);
+
   const handleSignup = async (courseName) => {
     try {
-      const response = await fetch('http://localhost:5000/api/student/signup', {
+      const res = await fetch('http://localhost:5000/api/student/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ course: courseName }),
       });
-      const data = await response.json();
+      const data = await res.json();
       setMessage(data.message);
-      if (response.ok) {
-        // Refresh course lists after successful signup
-        fetch('http://localhost:5000/api/student/courses')
-          .then((res) => res.json())
-          .then((data) => setRows(data))
-          .catch((err) => console.error(err));
-        fetch('http://localhost:5000/api/school/courses')
-          .then((res) => res.json())
-          .then((data) => setAddRows(data))
-          .catch((err) => console.error(err));
+
+      // Refresh course views
+      if (res.ok) {
+        setShowMyCourses(true); // switch to enrolled view
       }
-    } catch (error) {
-      console.error('Error signing up for course:', error);
-      setMessage('Error signing up for course');
+    } catch (err) {
+      console.error(err);
+      setMessage('Signup failed');
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/login');
   };
 
   return (
     <div className="app-container">
       <div id="course-container">
         <div id="top-bar">
-          <h1 id="welcome">Welcome {name}</h1>
+          <h1 id="welcome">Welcome {username}</h1>
           <div className="img-container">
             <img
               id="logo"
@@ -155,58 +137,38 @@ function App() {
               alt="UC Merced Logo"
             />
           </div>
-          <Link id="s-out" to="/login">
-            <h1 id="s-out-in">
-              Sign out <FaSignOutAlt />
-            </h1>
-          </Link>
+          <h1 id="s-out-in" onClick={handleLogout} style={{ cursor: 'pointer' }}>
+            Sign out <FaSignOutAlt />
+          </h1>
         </div>
 
         <div className="content-container">
           <div className="course-view">
             <p
-              onClick={() => setShowCourseView(true)}
-              style={
-                showCourseView
-                  ? { backgroundColor: '#f5f5f5' }
-                  : { backgroundColor: 'white' }
-              }
+              onClick={() => setShowMyCourses(true)}
+              style={{ backgroundColor: showMyCourses ? '#f5f5f5' : 'white' }}
               className="px-4 py-2 rounded-lg font-medium"
             >
-              Courses
+              My Courses
             </p>
             <p
-              onClick={() => setShowCourseView(false)}
-              style={
-                !showCourseView
-                  ? { backgroundColor: '#f5f5f5' }
-                  : { backgroundColor: 'white' }
-              }
+              onClick={() => setShowMyCourses(false)}
+              style={{ backgroundColor: !showMyCourses ? '#f5f5f5' : 'white' }}
               className="px-4 py-2 rounded-lg font-medium"
             >
-              Add Course
+              Add Courses
             </p>
           </div>
 
           {message && <p>{message}</p>}
 
-          {showCourseView ? (
-            <div id="stu-courses">
-              <div id="course-section">
-                <CourseTable data={rows} />
-              </div>
-            </div>
+          {showMyCourses ? (
+            <CourseTable data={enrolledCourses} />
           ) : (
-            <div id="add-courses">
-              <div id="course-section">
-                <AddCourseTable data={addRows} onSignup={handleSignup} />
-              </div>
-            </div>
+            <AddCourseTable data={availableCourses} onSignup={handleSignup} />
           )}
         </div>
       </div>
     </div>
   );
 }
-
-export default App;

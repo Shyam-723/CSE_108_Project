@@ -6,19 +6,26 @@ import TeacherView from './components/teacherView.js';
 import './App.css';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return !!localStorage.getItem('role');
+  });
+  const [userRole, setUserRole] = useState(() => {
+    return localStorage.getItem('role');
+  });
 
   const handleLogin = (role) => {
+    localStorage.setItem('role', role);
     setIsLoggedIn(true);
     setUserRole(role);
   };
+  
 
   const handleLogout = () => {
+    localStorage.clear();
     setIsLoggedIn(false);
     setUserRole(null);
   };
-
+  
   return (
       <div className="App">
         <nav>
