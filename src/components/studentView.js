@@ -4,14 +4,18 @@ import { FaSignOutAlt } from 'react-icons/fa';
 import '../App.css';
 
 // Row for enrolled courses
-const Row = ({ course, teacher, time, enrolled }) => (
+const Row = ({ course, teacher, time, enrolled, onDrop }) => (
   <tr>
     <td>{course}</td>
     <td>{teacher}</td>
     <td>{time}</td>
     <td>{enrolled}</td>
+    <td>
+      <button onClick={() => onDrop(course)}>Drop</button>
+    </td>
   </tr>
 );
+
 
 // Row for available courses
 const AddRow = ({ course, teacher, time, enrolled, add, onSignup }) => (
@@ -31,7 +35,7 @@ const AddRow = ({ course, teacher, time, enrolled, add, onSignup }) => (
 );
 
 // Table for enrolled courses
-const CourseTable = ({ data }) => (
+const CourseTable = ({ data, onDrop }) => (
   <table>
     <thead>
       <tr>
@@ -39,15 +43,17 @@ const CourseTable = ({ data }) => (
         <th>Teacher</th>
         <th>Time</th>
         <th>Enrolled</th>
+        <th>Drop</th>
       </tr>
     </thead>
     <tbody>
       {data.map((course, index) => (
-        <Row key={index} {...course} />
+        <Row key={index} {...course} onDrop={onDrop} />
       ))}
     </tbody>
   </table>
 );
+
 
 // Table for addable courses
 const AddCourseTable = ({ data, onSignup }) => (
@@ -120,6 +126,34 @@ export default function StudentView() {
     }
   };
 
+  const handleDrop = async (courseName) => {
+    try {
+      const res = await fetch('http://localhost:5000/api/student/drop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course: courseName }),
+      });
+      const data = await res.json();
+      setMessage(data.message);
+  
+      if (res.ok) {
+        // Refresh both tables
+        await fetch('http://localhost:5000/api/student/courses')
+          .then((res) => res.json())
+          .then((data) => setEnrolledCourses(data));
+  
+        await fetch('http://localhost:5000/api/school/courses')
+          .then((res) => res.json())
+          .then((data) => setAvailableCourses(data));
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage('Drop failed');
+    }
+  };
+  
+  
+
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
@@ -163,7 +197,7 @@ export default function StudentView() {
           {message && <p>{message}</p>}
 
           {showMyCourses ? (
-            <CourseTable data={enrolledCourses} />
+            <CourseTable data={enrolledCourses} onDrop={handleDrop} />
           ) : (
             <AddCourseTable data={availableCourses} onSignup={handleSignup} />
           )}

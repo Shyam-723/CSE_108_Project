@@ -19,16 +19,16 @@ courses = [
 
 # School course offerings with an 'add' flag.
 addCourse = [
-    {"course": "Physics 009", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10", "add": "-"},
-    {"course": "Math 131", "teacher": "Mr.B", "time": "TR 11:00-11:50 AM", "enrolled": "10/10", "add": "+"},
-    {"course": "CSE 120", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10", "add": "+"}
+    {"course": "Cogs 97", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "15/15", "add": "-"},
+    {"course": "Math 141", "teacher": "Mr.B", "time": "TR 11:00-11:50 AM", "enrolled": "30/45", "add": "+"},
+    {"course": "CSE 110", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "25/40", "add": "+"}
 ]
 
 # Login endpoint: Checks username and password
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
-    
+
     username = data.get('username')
     password = data.get('password')
 
@@ -81,6 +81,29 @@ def signup_course():
                 return jsonify({'message': f"Course {course_name} is full or already enrolled"}), 400
 
     return jsonify({'message': 'Course not found'}), 404
+
+
+@app.route('/api/student/drop', methods=['POST'])
+def drop_course():  
+    data = request.get_json()
+    course_name = data.get('course')
+
+    if not course_name:
+        return jsonify({'message': 'Course name is required'}), 400
+
+    # Find and remove the course from the student's enrolled list
+    for course in courses:
+        if course["course"] == course_name:
+            courses.remove(course)
+            # Also make the course available again for signup
+            for add in addCourse:
+                if add["course"] == course_name:
+                    add["add"] = "+"
+            return jsonify({'message': f"Dropped {course_name}"}), 200
+
+    return jsonify({'message': 'Course not found in your enrolled list'}), 404
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
