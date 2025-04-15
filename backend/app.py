@@ -3,7 +3,6 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# Predefined users, passwords, and roles
 USERS = {
     "student": {"password": "123456", "role": "student"},
     "teacher": {"password": "123456", "role": "teacher"},
@@ -58,19 +57,15 @@ def login():
 
     return jsonify({'message': f"Welcome {username}", 'role': user['role']}), 200
 
-# Endpoint to get courses a student is enrolled in.
 @app.route('/api/student/courses', methods=['GET'])
 def get_student_courses():
-    # In a real app, you would check the logged-in user's identity and query your database.
-    # Here we simply return the static 'courses' list.
+   
     return jsonify(courses), 200
 
-# Endpoint to get all school courses offered (available for signup).
 @app.route('/api/school/courses', methods=['GET'])
 def get_school_courses():
     return jsonify(addCourse), 200
 
-# Endpoint for course signup: expects a JSON with a course name.
 @app.route('/api/student/signup', methods=['POST'])
 def signup_course():
     data = request.get_json()
@@ -79,7 +74,6 @@ def signup_course():
     if not course_name:
         return jsonify({'message': 'Course name is required'}), 400
 
-    # Find the course in the school offerings
     for course in addCourse:
         if course["course"] == course_name:
             # Check if the course is available for signup (using the 'add' flag)
