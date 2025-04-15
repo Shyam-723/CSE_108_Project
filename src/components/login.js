@@ -15,6 +15,7 @@ import Card from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 import AppTheme from '../shared-theme/AppTheme.js';
 import ColorModeSelect from '../shared-theme/ColorModeSelect.js';
+import { useNavigate } from 'react-router-dom';
 //import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
 
 
@@ -48,6 +49,8 @@ export default function Login(props) {
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
 
+  const navigate = useNavigate();
+
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -55,34 +58,66 @@ export default function Login(props) {
   const handleClose = () => {
     setOpen(false);
   };
-
+  
   const handleSubmit = (event) => {
-    if (emailError || passwordError) {
-      event.preventDefault();
+    event.preventDefault(); // prevent default form behavior
+  
+    if (!validateInputs()) {
       return;
     }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-  };
+  
+    fetch('http://localhost:5000/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value,
+      }),
+    })
+      .then((response) =>
+        response.json().then((data) => ({ status: response.status, body: data }))
+      )
+      .then(({ status, body }) => {
+        if (status === 200) {
+          if (props.onLogin) {
+            props.onLogin(body.role);
+          }
+        
+          if (body.role === 'student') {
+            navigate('/student');
+          } else if (body.role === 'teacher') {
+            navigate('/teacher');
+          } else {
+            alert('Logged in as admin (no redirect defined)');
+          }
+        }
+        else {
+          alert(body.message || 'Login failed');
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error logging in');
+      });
+  };  
 
   const validateInputs = () => {
-    const email = document.getElementById('email');
+    const username = document.getElementById('username');
     const password = document.getElementById('password');
-
+  
     let isValid = true;
-
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+  
+    if (!username.value || username.value.trim().length < 3) {
       setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email address.');
+      setEmailErrorMessage('Please enter a valid username.');
       isValid = false;
     } else {
       setEmailError(false);
       setEmailErrorMessage('');
     }
-
+  
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
       setPasswordErrorMessage('Password must be at least 6 characters long.');
@@ -91,9 +126,9 @@ export default function Login(props) {
       setPasswordError(false);
       setPasswordErrorMessage('');
     }
-
+  
     return isValid;
-  };
+  };  
 
   return (
     <AppTheme {...props}>
@@ -120,15 +155,15 @@ export default function Login(props) {
             }}
           >
             <FormControl>
-              <FormLabel htmlFor="email">Email</FormLabel>
+            <FormLabel htmlFor="username">Username</FormLabel>
               <TextField
                 error={emailError}
                 helperText={emailErrorMessage}
-                id="email"
-                type="email"
-                name="email"
-                placeholder="your@email.com"
-                autoComplete="email"
+                id="username"
+                type="text"
+                name="username"
+                placeholder="e.g. student"
+                autoComplete="username"
                 autoFocus
                 required
                 fullWidth
@@ -158,7 +193,6 @@ export default function Login(props) {
               type="submit"
               fullWidth
               variant="contained"
-              onClick={validateInputs}
             >
               Sign in
             </Button>
