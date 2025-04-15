@@ -86,14 +86,6 @@ export default function Login(props) {
           if (props.onLogin) {
             props.onLogin(body.role);
           }
-        
-          if (body.role === 'student') {
-            navigate('/student');
-          } else if (body.role === 'teacher') {
-            navigate('/teacher');
-          } else {
-            alert('Logged in as admin (no redirect defined)');
-          }
         }
         else {
           alert(body.message || 'Login failed');

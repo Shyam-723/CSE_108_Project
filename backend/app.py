@@ -139,6 +139,53 @@ def drop_course():
 
     return jsonify({'message': 'Course not found in your enrolled list'}), 404
 
+@app.route('/api/admin/courses', methods=['GET'])
+def admin_get_courses():
+    updated = []
+    for c in courses:
+        enrolled_count = len(course_students.get(c['course'], []))
+        max_capacity = int(c['enrolled'].split('/')[1])
+        c_copy = c.copy()
+        c_copy['enrolled'] = f"{enrolled_count}/{max_capacity}"
+        updated.append(c_copy)
+    return jsonify(updated), 200
+
+@app.route('/api/admin/students', methods=['POST'])
+def admin_get_students():
+    data = request.get_json()
+    course_name = data.get('course')
+    students = course_students.get(course_name, [])
+    return jsonify(students), 200
+
+@app.route('/api/admin/add_course', methods=['POST'])
+def admin_add_course():
+    data = request.get_json()
+    course_name = data.get('course')
+    teacher = data.get('teacher')
+    time = data.get('time')
+    max_capacity = data.get('max', 30)
+
+    new_course = {
+        "course": course_name,
+        "teacher": teacher,
+        "time": time,
+        "enrolled": f"0/{max_capacity}"
+    }
+    courses.append(new_course)
+    course_students[course_name] = []
+    return jsonify({'message': f"Course {course_name} added"}), 200
+
+@app.route('/api/admin/delete_course', methods=['DELETE'])
+def admin_delete_course():
+    data = request.get_json()
+    course_name = data.get('course')
+
+    global courses
+    courses = [c for c in courses if c['course'] != course_name]
+    course_students.pop(course_name, None)
+
+    return jsonify({'message': f"Course {course_name} deleted"}), 200
+
 
 
 if __name__ == '__main__':
