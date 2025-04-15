@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaSignOutAlt, FaArrowAltCircleLeft } from "react-icons/fa";
 import { FaPencil } from "react-icons/fa6";
+
 
 const courses = [
     {course: 'Physics 009', teacher: 'Susan B', time: 'TR 11:00-11:50 AM', enrolled: '5/10'},
@@ -15,7 +16,22 @@ const studentList = [
 ]; 
 
 function TeacherView() {
-    const [rows, setRows] = useState(courses);
+    const [rows, setRows] = useState([]);
+
+    useEffect(() => {
+        const teacherName = localStorage.getItem('displayName');
+      
+        fetch('http://localhost:5000/api/teacher/courses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: teacherName })
+        })
+          .then((res) => res.json())
+          .then((data) => setRows(data))
+          .catch((err) => console.error('Failed to load courses', err));
+      }, []);
+      
+
     const [infoRows, setInfoRows] = useState(studentList);
     const [showCourseView, setShowCourseView] = useState(true);
     const [currentCourse, setCurrentCourse] = useState('');
@@ -25,7 +41,7 @@ function TeacherView() {
     const [stuGrade, setStuGrade] = useState(''); 
     const [modal, setModal] = useState(false); 
       
-    const name = 'Teacher Name'; 
+    const name = localStorage.getItem('displayName') || 'Teacher';
     
     const StudentTable = (props) => {
         const {data, onStudentClick, onEditClick} = props;

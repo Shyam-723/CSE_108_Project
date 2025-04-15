@@ -78,6 +78,10 @@ export default function Login(props) {
         if (status === 200) {
           localStorage.setItem('username', document.getElementById('username').value);
           localStorage.setItem('role', body.role);
+          localStorage.setItem('displayName', body.displayName);  // new
+          props.onLogin(body.role);
+          navigate(`/${body.role}`);
+
 
           if (props.onLogin) {
             props.onLogin(body.role);

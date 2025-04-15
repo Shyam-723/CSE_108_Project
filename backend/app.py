@@ -6,8 +6,9 @@ CORS(app)
 # Predefined users, passwords, and roles
 USERS = {
     "student": {"password": "123456", "role": "student"},
-    "teacher": {"password": "123456", "role": "teacher"},
-    "admin":   {"password": "123456",   "role": "admin"}
+    "susan": {"password": "123456", "role": "teacher", "name": "Susan B"},
+    "mr.b": {"password": "123456", "role": "teacher", "name": "Mr.B"},
+    "admin": {"password": "123456", "role": "admin"}
 }
 
 # Static course data (in a real app you might store these in the database)
@@ -24,11 +25,9 @@ addCourse = [
     {"course": "CSE 110", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "25/40", "add": "+"}
 ]
 
-# Login endpoint: Checks username and password
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
-
     username = data.get('username')
     password = data.get('password')
 
@@ -39,14 +38,18 @@ def login():
     if not user or user['password'] != password:
         return jsonify({'message': 'Username or Password incorrect'}), 401
 
-    return jsonify({'message': f"Welcome {username}", 'role': user['role']}), 200
+    return jsonify({
+        'message': f"Welcome {username}",
+        'role': user['role'],
+        'displayName': user.get('name', username)  # fallback if no name
+    }), 200
 
-# Endpoint to get courses a student is enrolled in.
-@app.route('/api/student/courses', methods=['GET'])
-def get_student_courses():
-    # In a real app, you would check the logged-in user's identity and query your database.
-    # Here we simply return the static 'courses' list.
-    return jsonify(courses), 200
+@app.route('/api/teacher/courses', methods=['POST'])
+def get_teacher_courses():
+    data = request.get_json()
+    teacher_name = data.get('name')  # "Susan B" or "Mr.B"
+    filtered = [c for c in courses if c['teacher'] == teacher_name]
+    return jsonify(filtered), 200
 
 # Endpoint to get all school courses offered (available for signup).
 @app.route('/api/school/courses', methods=['GET'])
