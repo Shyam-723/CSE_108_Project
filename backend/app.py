@@ -10,19 +10,36 @@ USERS = {
     "admin":   {"password": "123456",   "role": "admin"}
 }
 
-# Static course data (in a real app you might store these in the database)
 courses = [
     {"course": "Physics 009", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10"},
-    {"course": "Math 131", "teacher": "Mr.B", "time": "TR 11:00-11:50 AM", "enrolled": "10/10"},
+    {"course": "Math 101", "teacher": "Mr.B", "time": "TR 11:00-11:50 AM", "enrolled": "10/10"},
     {"course": "CSE 120", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10"}
 ]
 
-# School course offerings with an 'add' flag.
 addCourse = [
-    {"course": "Physics 009", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10", "add": "-"},
+    {"course": "Physics 109", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10", "add": "-"},
     {"course": "Math 131", "teacher": "Mr.B", "time": "TR 11:00-11:50 AM", "enrolled": "10/10", "add": "+"},
-    {"course": "CSE 120", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10", "add": "+"}
+    {"course": "CSE 100", "teacher": "Susan B", "time": "TR 11:00-11:50 AM", "enrolled": "5/10", "add": "+"}
 ]
+
+
+student_grades = {
+    "Physics 009": [
+        {"name": "student 1", "grade": "92"},
+        {"name": "student 2", "grade": "94"},
+        {"name": "student 3", "grade": "87"}
+    ],
+    "Physics 008": [
+        {"name": "student 1", "grade": "85"},
+        {"name": "student 2", "grade": "90"},
+        {"name": "student 3", "grade": "82"}
+    ],
+    "CSE 120": [
+        {"name": "student 1", "grade": "75"},
+        {"name": "student 2", "grade": "90"},
+        {"name": "student 3", "grade": "62"}
+    ]    
+}
 
 # Login endpoint: Checks username and password
 @app.route('/api/login', methods=['POST'])
@@ -81,6 +98,61 @@ def signup_course():
                 return jsonify({'message': f"Course {course_name} is full or already enrolled"}), 400
 
     return jsonify({'message': 'Course not found'}), 404
+
+# Endpoint for dropping a course: expects a JSON with a course name
+@app.route('/api/student/drop', methods=['POST'])
+def drop_course():
+    data = request.get_json()
+    course_name = data.get('course')
+
+    if not course_name:
+        return jsonify({'message': 'Course name is required'}), 400
+
+    for i, course in enumerate(courses):
+        if course["course"] == course_name:
+            dropped_course = courses.pop(i)
+            
+            for school_course in addCourse:
+                if school_course["course"] == course_name:
+                    school_course["add"] = "+"
+                    break
+                    
+            return jsonify({'message': f"Successfully dropped {course_name}"}), 200
+
+    return jsonify({'message': 'Course not found or not enrolled'}), 404
+
+@app.route('/api/teacher/students/<course_name>', methods=['GET'])
+def get_course_students(course_name):
+    if course_name in student_grades:
+        return jsonify(student_grades[course_name]), 200
+    else:
+        return jsonify({"message": "Course not found"}), 404
+
+@app.route('/api/teacher/update-grade', methods=['POST'])
+def update_grade():
+    data = request.get_json()
+    course_name = data.get('course')
+    student_name = data.get('student')
+    new_grade = data.get('grade')
+    
+    if not course_name or not student_name or not new_grade:
+        return jsonify({"message": "Course name, student name, and grade are required"}), 400
+    
+    if course_name not in student_grades:
+        return jsonify({"message": "Course not found"}), 404
+    
+    for student in student_grades[course_name]:
+        if student["name"] == student_name:
+            student["grade"] = new_grade
+            return jsonify({"message": "Grade updated successfully"}), 200
+    
+    return jsonify({"message": "Student not found in course"}), 404
+
+# route to get teacher's courses
+@app.route('/api/teacher/courses', methods=['GET'])
+def get_teacher_courses():
+    teacher_courses = [course for course in courses if course["teacher"] == "Susan B"]
+    return jsonify(teacher_courses), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaSignOutAlt } from 'react-icons/fa';
-import '../App.js';
+import { FaSignOutAlt, FaPlus, FaMinus } from 'react-icons/fa';
+import '../App.css';
 
-// Row for enrolled courses
-const Row = ({ course, teacher, time, enrolled }) => (
+const Row = ({ course, teacher, time, enrolled, onDrop }) => (
   <tr className="table-row">
     <td>{course}</td>
     <td>{teacher}</td>
     <td>{time}</td>
     <td>{enrolled}</td>
+    <td>
+      <FaMinus
+        style={{
+          cursor: 'pointer',
+          color: 'red',
+        }}
+        onClick={() => onDrop(course)}
+      />
+    </td>
   </tr>
 );
 
-// Row for courses available for signup
 const AddRow = ({ course, teacher, time, enrolled, add, onSignup }) => (
   <tr className="table-row">
     <td>{course}</td>
@@ -22,16 +29,21 @@ const AddRow = ({ course, teacher, time, enrolled, add, onSignup }) => (
     <td>{enrolled}</td>
     <td>
       {add === '+' ? (
-        <button onClick={() => onSignup(course)}>{add}</button>
+        <FaPlus
+          style={{
+            cursor: 'pointer',
+            color: 'green',
+          }}
+          onClick={() => onSignup(course)}
+        />
       ) : (
-        add
+        <span style={{ color: 'gray' }}>-</span>
       )}
     </td>
   </tr>
 );
 
-// Table displaying enrolled courses
-const CourseTable = ({ data }) => (
+const CourseTable = ({ data, onDrop }) => (
   <table>
     <thead>
       <tr>
@@ -39,6 +51,7 @@ const CourseTable = ({ data }) => (
         <th>Teacher</th>
         <th>Time</th>
         <th>Enrollment</th>
+        <th>Drop Course</th>
       </tr>
     </thead>
     <tbody>
@@ -49,13 +62,13 @@ const CourseTable = ({ data }) => (
           teacher={row.teacher}
           time={row.time}
           enrolled={row.enrolled}
+          onDrop={onDrop}
         />
       ))}
     </tbody>
   </table>
 );
 
-// Table displaying courses offered by the school
 const AddCourseTable = ({ data, onSignup }) => (
   <table>
     <thead>
@@ -83,38 +96,38 @@ const AddCourseTable = ({ data, onSignup }) => (
   </table>
 );
 
-function App() {
-  // State for courses the student is enrolled in
+function StudentView() {
   const [rows, setRows] = useState([]);
-  // State for courses available to add
   const [addRows, setAddRows] = useState([]);
-  // Toggle between "Courses" and "Add Course" views
   const [showCourseView, setShowCourseView] = useState(true);
-  // For status or error messages
   const [message, setMessage] = useState('');
-  // Hardcoded student name for demonstration
-  const name = 'Rahsaan';
+  const name = 'Student';
 
-  // Fetch data from back end based on the view selected
   useEffect(() => {
     if (showCourseView) {
-      // Fetch courses the student is enrolled in
-      fetch('http://localhost:5000/api/student/courses')
-        .then((res) => res.json())
-        .then((data) => setRows(data))
-        .catch((err) =>
-          console.error('Error fetching enrolled courses:', err)
-        );
+      fetchEnrolledCourses();
     } else {
-      // Fetch all courses offered by the school
-      fetch('http://localhost:5000/api/school/courses')
-        .then((res) => res.json())
-        .then((data) => setAddRows(data))
-        .catch((err) =>
-          console.error('Error fetching school courses:', err)
-        );
+      fetchSchoolCourses();
     }
   }, [showCourseView]);
+
+  const fetchEnrolledCourses = () => {
+    fetch('http://localhost:5000/api/student/courses')
+      .then((res) => res.json())
+      .then((data) => setRows(data))
+      .catch((err) =>
+        console.error('Error fetching enrolled courses:', err)
+      );
+  };
+
+  const fetchSchoolCourses = () => {
+    fetch('http://localhost:5000/api/school/courses')
+      .then((res) => res.json())
+      .then((data) => setAddRows(data))
+      .catch((err) =>
+        console.error('Error fetching school courses:', err)
+      );
+  };
 
   // Handler for signing up for a course
   const handleSignup = async (courseName) => {
@@ -128,20 +141,42 @@ function App() {
       setMessage(data.message);
       if (response.ok) {
         // Refresh course lists after successful signup
-        fetch('http://localhost:5000/api/student/courses')
-          .then((res) => res.json())
-          .then((data) => setRows(data))
-          .catch((err) => console.error(err));
-        fetch('http://localhost:5000/api/school/courses')
-          .then((res) => res.json())
-          .then((data) => setAddRows(data))
-          .catch((err) => console.error(err));
+        fetchEnrolledCourses();
+        fetchSchoolCourses();
       }
     } catch (error) {
       console.error('Error signing up for course:', error);
       setMessage('Error signing up for course');
     }
   };
+
+  const handleDrop = async (courseName) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/student/drop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course: courseName }),
+      });
+      const data = await response.json();
+      setMessage(data.message);
+      if (response.ok) {
+        fetchEnrolledCourses();
+        fetchSchoolCourses();
+      }
+    } catch (error) {
+      console.error('Error dropping course:', error);
+      setMessage('Error dropping course');
+    }
+  };
+
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   return (
     <div className="app-container">
@@ -171,9 +206,8 @@ function App() {
                   ? { backgroundColor: '#f5f5f5' }
                   : { backgroundColor: 'white' }
               }
-              className="px-4 py-2 rounded-lg font-medium"
             >
-              Courses
+              My Courses
             </p>
             <p
               onClick={() => setShowCourseView(false)}
@@ -182,18 +216,17 @@ function App() {
                   ? { backgroundColor: '#f5f5f5' }
                   : { backgroundColor: 'white' }
               }
-              className="px-4 py-2 rounded-lg font-medium"
             >
               Add Course
             </p>
           </div>
 
-          {message && <p>{message}</p>}
+          {message && <p className="message">{message}</p>}
 
           {showCourseView ? (
             <div id="stu-courses">
               <div id="course-section">
-                <CourseTable data={rows} />
+                <CourseTable data={rows} onDrop={handleDrop} />
               </div>
             </div>
           ) : (
@@ -209,4 +242,4 @@ function App() {
   );
 }
 
-export default App;
+export default StudentView;

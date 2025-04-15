@@ -50,8 +50,6 @@ export default function Login(props) {
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
 
-  const navigate = useNavigate();
-
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -63,9 +61,9 @@ export default function Login(props) {
   const handleSubmit = (event) => {
     event.preventDefault(); // prevent default form behavior
   
-    if (!validateInputs()) {
-      return;
-    }
+    // if (!validateInputs()) {
+    //   return;
+    // }
   
     fetch('http://localhost:5000/api/login', {
       method: 'POST',

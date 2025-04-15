@@ -1,41 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaSignOutAlt, FaArrowAltCircleLeft } from "react-icons/fa";
 import { FaPencil } from "react-icons/fa6";
 
-const courses = [
-    {course: 'Physics 009', teacher: 'Susan B', time: 'TR 11:00-11:50 AM', enrolled: '5/10'},
-    {course: 'Physics 008', teacher: 'Susan B', time: 'TR 11:00-11:50 AM', enrolled: '6/10'}  
-];
-      
-const studentList = [
-    {name: 'student 1', grade: '92'}, 
-    {name: 'student 2', grade: '94'}, 
-    {name: 'student 3', grade: '87'}, 
-]; 
-
 function TeacherView() {
-    const [rows, setRows] = useState(courses);
-    const [infoRows, setInfoRows] = useState(studentList);
+    const [rows, setRows] = useState([]);
+    const [infoRows, setInfoRows] = useState([]);
     const [showCourseView, setShowCourseView] = useState(true);
     const [currentCourse, setCurrentCourse] = useState('');
+    const [message, setMessage] = useState('');
 
-    // modal 
+    // modal  stuff
     const [stuName, setStuName] = useState(''); 
     const [stuGrade, setStuGrade] = useState(''); 
     const [modal, setModal] = useState(false); 
       
-    const name = 'Teacher Name'; 
+    const name = 'Susan B';
     
+    useEffect(() => {
+        fetchTeacherCourses();
+    }, []);
+
+    const fetchTeacherCourses = () => {
+        fetch('http://localhost:5000/api/teacher/courses')
+            .then(res => res.json())
+            .then(data => setRows(data))
+            .catch(err => console.error('Error fetching teacher courses:', err));
+    };
+
+    const fetchCourseStudents = (courseName) => {
+        fetch(`http://localhost:5000/api/teacher/students/${courseName}`)
+            .then(res => res.json())
+            .then(data => setInfoRows(data))
+            .catch(err => console.error('Error fetching course students:', err));
+    };
+
     const StudentTable = (props) => {
         const {data, onStudentClick, onEditClick} = props;
         return (
             <table>
                 <thead>
                     <tr>
-                        <th className = "table-row-content">Student Name</th>
-                        <th className = "table-row-content">Grade</th>
-                        <th id = "edit-grade" className = "table-row-content">Edit</th>
+                        <th className="table-row-content">Student Name</th>
+                        <th className="table-row-content">Grade</th>
+                        <th id="edit-grade" className="table-row-content">Edit</th>
                     </tr>
                 </thead> 
                 <tbody>
@@ -73,7 +81,7 @@ function TeacherView() {
                             teacher={row.teacher}
                             time={row.time}
                             enrolled={row.enrolled}
-                            onClick={() => onCourseClick(row.course)}
+                            onClick={onCourseClick}
                         />
                     ))}
                 </tbody>
@@ -81,6 +89,7 @@ function TeacherView() {
         );
     }
 
+    // ROW compoennt 
     const Row = (props) => {
         const {course, teacher, time, enrolled, onClick} = props;
         return (
@@ -95,6 +104,7 @@ function TeacherView() {
         );
     }
     
+    // student info row component
     const InfoRow = (props) => {
         const {name, grade, onStudentClick, onEditClick} = props;
         return (
@@ -113,21 +123,45 @@ function TeacherView() {
     
     const handleCourseClick = (courseName) => {
         setCurrentCourse(courseName);
+        fetchCourseStudents(courseName);
         setShowCourseView(false);
     };
 
+    // open modal to edit a student's grade
     const handleOpenEditModal = (studentName, studentGrade) => {
-        console.log(`Editing student: ${studentName}`);
         setStuName(studentName);
         setStuGrade(studentGrade); 
         setModal(true); 
-        
     }; 
 
+    // submit edited grade
     const editGrade = (e) => {
-        handleCloseEditModal(); 
+        e.preventDefault();
+        
+        // call API to update grade
+        fetch('http://localhost:5000/api/teacher/update-grade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                course: currentCourse,
+                student: stuName,
+                grade: stuGrade
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            setMessage(data.message);
+            // Refresh student list
+            fetchCourseStudents(currentCourse);
+            handleCloseEditModal();
+        })
+        .catch(err => {
+            console.error('Error updating grade:', err);
+            setMessage('Error updating grade');
+        });
     }; 
 
+    // close edit modal
     const handleCloseEditModal = () => { 
         setModal(false); 
     }; 
@@ -138,12 +172,14 @@ function TeacherView() {
                 <div id="top-bar">
                     <h1 id="welcome">Welcome {name}</h1>
                     <div className="img-container">
-                        <img id = "logo" src = "https://nationalnutgrower.com/wp-content/uploads/2024/03/UC-Merced-logo-rectangle-1024x262.png"></img>
+                        <img id="logo" src="https://nationalnutgrower.com/wp-content/uploads/2024/03/UC-Merced-logo-rectangle-1024x262.png" alt="UC Merced Logo"></img>
                     </div>
-                    <Link id="s-out" to="/">
+                    <Link id="s-out" to="/login">
                         <h1 id="s-out-in">Sign out <FaSignOutAlt/></h1>
                     </Link>
                 </div>
+
+                {message && <p className="message">{message}</p>}
 
                 {showCourseView ? (
                     <div className="t-content-container">
@@ -166,7 +202,7 @@ function TeacherView() {
                     <div className="student-info-container">
                         <div className="t-course-title-content">
                                 <FaArrowAltCircleLeft 
-                                    style = {{cursor: 'pointer'}}
+                                    style={{cursor: 'pointer'}}
                                     id="arrow" 
                                     onClick={() => setShowCourseView(true)}
                                 /> 
@@ -182,9 +218,7 @@ function TeacherView() {
                 )}
             </div>
             
-            {/* change grade modal */}
-
-            {/* Modal with overlay */}
+            {/* Modal for editing grades */}
             {modal && (
                 <div className="modal-overlay" onClick={handleCloseEditModal}>
                     <div className="grade-modal" onClick={(e) => e.stopPropagation()}>
@@ -204,10 +238,6 @@ function TeacherView() {
                     </div>
                 </div>
             )}
-
-            
-
-
         </div>
     );
 }
