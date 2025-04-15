@@ -50,6 +50,8 @@ export default function Login(props) {
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate();
 
+  const navigate = useNavigate();
+
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -57,88 +59,51 @@ export default function Login(props) {
   const handleClose = () => {
     setOpen(false);
   };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
   
-    if (emailError || passwordError) {
-      return;
-    }
-    const form = event.target;
-    const data = new FormData(event.currentTarget);
-    const username = data.get('email')?.trim();
-    const password = data.get('password')?.trim();
+  const handleSubmit = (event) => {
+    event.preventDefault(); // prevent default form behavior
   
-    if (!username || !password) {
-      // Show error to user
+    if (!validateInputs()) {
       return;
     }
   
-    try {
-      const response = await fetch('http://localhost:3000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({"username": username, "password": password }),
-      });
-  
-      if (response.ok) {
-        const returnData = await response.json();
-        const role = returnData.role?.toLowerCase();
-  
-        switch (role) {
-          case 'student':
+    fetch('http://localhost:5000/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value,
+      }),
+    })
+      .then((response) =>
+        response.json().then((data) => ({ status: response.status, body: data }))
+      )
+      .then(({ status, body }) => {
+        if (status === 200) {
+          if (props.onLogin) {
+            props.onLogin(body.role);
+          }
+        
+          if (body.role === 'student') {
             navigate('/student');
-            break;
-          case 'teacher':
+          } else if (body.role === 'teacher') {
             navigate('/teacher');
-            break;
-          case 'admin':
-            navigate('/admin');
-            break;
-          default:
-            navigate('/login');
+          } else {
+            alert('Logged in as admin (no redirect defined)');
+          }
         }
-      } else {
-        console.error('Login failed:', await response.text());
-        // Display login error on UI
-      }
-    } catch (error) {
-      console.error('Error during login:', error);
-      // Show connection error on UI
-    }
-  };
-  
-  
-  /*
-  const validateInputs = () => {
-    const email = document.getElementById('email');
-    const password = document.getElementById('password');
+        else {
+          alert(body.message || 'Login failed');
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error logging in');
+      });
+  };  
 
-    let isValid = true;
-
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
-      setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email address.');
-      isValid = false;
-    } else {
-      setEmailError(false);
-      setEmailErrorMessage('');
-    }
-
-    if (!password.value || password.value.length < 6) {
-      setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 6 characters long.');
-      isValid = false;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage('');
-    }
-
-    return isValid;
-  };
-  */
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
@@ -164,15 +129,15 @@ export default function Login(props) {
             }}
           >
             <FormControl>
-              <FormLabel htmlFor="email">Email</FormLabel>
+            <FormLabel htmlFor="username">Username</FormLabel>
               <TextField
                 error={emailError}
                 helperText={emailErrorMessage}
-                id="email"
-                type="email"
-                name="email"
-                placeholder="your@email.com"
-                autoComplete="email"
+                id="username"
+                type="text"
+                name="username"
+                placeholder="e.g. student"
+                autoComplete="username"
                 autoFocus
                 required
                 fullWidth
@@ -202,8 +167,6 @@ export default function Login(props) {
               type="submit"
               fullWidth
               variant="contained"
-              //onClick={validateInputs}
-              //onClick={handleSubmit}
             >
               Sign in
             </Button>
