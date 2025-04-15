@@ -86,19 +86,21 @@ export default function StudentView() {
   const username = localStorage.getItem('username');
   const role = localStorage.getItem('role');
 
-  const fetchCourses = () => {
-    const url = showMyCourses
-      ? 'http://localhost:5000/api/student/courses'
-      : 'http://localhost:5000/api/school/courses';
+  const fetchEnrolledCourses = () => {
+    const username = localStorage.getItem('username');
+    fetch(`http://localhost:5000/api/student/courses?username=${username}`)
+      .then(res => res.json())
+      .then(data => setEnrolledCourses(data))
+      .catch(err => console.error('Error fetching enrolled courses:', err));
+  };  
   
-    fetch(url)
+  const fetchAvailableCourses = () => {
+    fetch('http://localhost:5000/api/school/courses')
       .then((res) => res.json())
-      .then((data) => {
-        if (showMyCourses) setEnrolledCourses(data);
-        else setAvailableCourses(data);
-      })
-      .catch((err) => console.error('Error:', err));
+      .then((data) => setAvailableCourses(data))
+      .catch((err) => console.error('Error fetching available courses:', err));
   };
+  
   
 
   // Redirect if not a student
@@ -109,19 +111,13 @@ export default function StudentView() {
   }, [role, navigate]);
 
   useEffect(() => {
-    const url = showMyCourses
-      ? 'http://localhost:5000/api/student/courses'
-      : 'http://localhost:5000/api/school/courses';
-
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        if (showMyCourses) setEnrolledCourses(data);
-        else setAvailableCourses(data);
-      })
-      .catch((err) => console.error('Error:', err));
+    if (showMyCourses) {
+      fetchEnrolledCourses();
+    } else {
+      fetchAvailableCourses();
+    }
   }, [showMyCourses]);
-
+  
   const handleSignup = async (courseName) => {
     try {
       const res = await fetch('http://localhost:5000/api/student/signup', {
@@ -129,7 +125,7 @@ export default function StudentView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           course: courseName,
-          student_name: localStorage.getItem('username')  
+          student_name: localStorage.getItem('username')
         }),
       });
   
@@ -137,13 +133,16 @@ export default function StudentView() {
       setMessage(data.message);
   
       if (res.ok) {
-        fetchCourses(); // Or refresh the enrolled/add views
+        setShowMyCourses(true); 
+        fetchEnrolledCourses();
+        fetchAvailableCourses(); 
       }
     } catch (err) {
       console.error(err);
       setMessage('Signup failed');
     }
   };  
+  
 
   const handleDrop = async (courseName) => {
     try {
@@ -160,8 +159,10 @@ export default function StudentView() {
       setMessage(data.message);
   
       if (res.ok) {
-        fetchCourses(); // Or refresh
+        fetchEnrolledCourses();
+        fetchAvailableCourses();
       }
+      
     } catch (err) {
       console.error(err);
       setMessage('Drop failed');

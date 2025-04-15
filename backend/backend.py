@@ -148,6 +148,28 @@ def signup_course():
 
     return jsonify({'message': f"Successfully signed up for {course.course}"}), 200
 
+@app.route('/api/student/courses', methods=['GET'])
+def get_student_courses():
+    username = request.args.get('username') or 'student'  # fallback to default
+
+    # Get course IDs this student is enrolled in
+    enrollments = StudentEnrollment.query.filter_by(student_name=username).all()
+    course_ids = [e.course_id for e in enrollments]
+
+    # Get the actual courses
+    enrolled_courses = Course.query.filter(Course.id.in_(course_ids)).all()
+
+    output = []
+    for course in enrolled_courses:
+        count = StudentEnrollment.query.filter_by(course_id=course.id).count()
+        output.append({
+            "course": course.course,
+            "teacher": course.teacher,
+            "time": course.time,
+            "enrolled": f"{count}/{course.capacity}"
+        })
+
+    return jsonify(output), 200
 
 
 @app.route('/api/student/drop', methods=['POST'])
