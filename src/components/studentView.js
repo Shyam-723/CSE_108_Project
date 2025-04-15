@@ -75,6 +75,7 @@ const AddCourseTable = ({ data, onSignup }) => (
   </table>
 );
 
+
 export default function StudentView() {
   const navigate = useNavigate();
   const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -84,6 +85,21 @@ export default function StudentView() {
 
   const username = localStorage.getItem('username');
   const role = localStorage.getItem('role');
+
+  const fetchCourses = () => {
+    const url = showMyCourses
+      ? 'http://localhost:5000/api/student/courses'
+      : 'http://localhost:5000/api/school/courses';
+  
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (showMyCourses) setEnrolledCourses(data);
+        else setAvailableCourses(data);
+      })
+      .catch((err) => console.error('Error:', err));
+  };
+  
 
   // Redirect if not a student
   useEffect(() => {
@@ -111,47 +127,46 @@ export default function StudentView() {
       const res = await fetch('http://localhost:5000/api/student/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ course: courseName }),
+        body: JSON.stringify({
+          course: courseName,
+          student_name: localStorage.getItem('username')  
+        }),
       });
+  
       const data = await res.json();
       setMessage(data.message);
-
-      // Refresh course views
+  
       if (res.ok) {
-        setShowMyCourses(true); // switch to enrolled view
+        fetchCourses(); // Or refresh the enrolled/add views
       }
     } catch (err) {
       console.error(err);
       setMessage('Signup failed');
     }
-  };
+  };  
 
   const handleDrop = async (courseName) => {
     try {
       const res = await fetch('http://localhost:5000/api/student/drop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ course: courseName }),
+        body: JSON.stringify({
+          course: courseName,
+          student_name: localStorage.getItem('username')  
+        }),
       });
+  
       const data = await res.json();
       setMessage(data.message);
   
       if (res.ok) {
-        // Refresh both tables
-        await fetch('http://localhost:5000/api/student/courses')
-          .then((res) => res.json())
-          .then((data) => setEnrolledCourses(data));
-  
-        await fetch('http://localhost:5000/api/school/courses')
-          .then((res) => res.json())
-          .then((data) => setAvailableCourses(data));
+        fetchCourses(); // Or refresh
       }
     } catch (err) {
       console.error(err);
       setMessage('Drop failed');
     }
   };
-  
   
 
   const handleLogout = () => {
