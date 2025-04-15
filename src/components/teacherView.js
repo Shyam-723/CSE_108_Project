@@ -144,9 +144,30 @@ function TeacherView() {
         
     }; 
 
-    const editGrade = (e) => {
-        handleCloseEditModal(); 
-    }; 
+    const editGrade = async () => {
+        try {
+          const res = await fetch('http://localhost:5000/api/teacher/update_grade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              course: currentCourse,
+              student: stuName,
+              grade: parseInt(stuGrade),
+            }),
+          });
+      
+          const data = await res.json();
+          console.log(data.message);
+      
+          // Refresh student list
+          handleCourseClick(currentCourse);
+        } catch (err) {
+          console.error('Failed to update grade:', err);
+        }
+      
+        handleCloseEditModal();
+      };
+      
 
     const handleCloseEditModal = () => { 
         setModal(false); 

@@ -29,6 +29,27 @@ class StudentEnrollment(db.Model):
     student_name = db.Column(db.String(100), nullable=False)
     grade = db.Column(db.Integer)
 
+@app.route('/api/teacher/update_grade', methods=['POST'])
+def update_grade():
+    data = request.get_json()
+    course_name = data.get('course')
+    student_name = data.get('student')
+    new_grade = data.get('grade')
+
+    course = Course.query.filter_by(course=course_name).first()
+    if not course:
+        return jsonify({'message': 'Course not found'}), 404
+
+    enrollment = StudentEnrollment.query.filter_by(course_id=course.id, student_name=student_name).first()
+    if not enrollment:
+        return jsonify({'message': 'Student not found in this course'}), 404
+
+    enrollment.grade = new_grade
+    db.session.commit()
+
+    return jsonify({'message': f"Grade updated for {student_name} to {new_grade}"}), 200
+
+
 # Predefined users, passwords, and roles
 # USERS = {
 #     "student": {"password": "123456", "role": "student"},
