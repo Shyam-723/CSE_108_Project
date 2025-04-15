@@ -1,4 +1,4 @@
-* {
+ * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -17,6 +17,73 @@
     color: #333;
     background-color: white;
     line-height: 1.4;
+  }
+  
+  h1, h2, h3, h4, h5 {
+    color: var(--primary-blue);
+  }
+  
+  a {
+    color: var(--primary-blue);
+    text-decoration: none;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+    color: var(--secondary-gold);
+  }
+  
+  .button {
+    background-color: var(--primary-blue);
+    color: var(--background-white);
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: var(--secondary-gold);
+    color: var(--primary-blue);
+  }
+  
+  .card {
+    background-color: var(--background-white);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    max-width: 500px;
+    margin: 2rem auto;
+  }
+  
+  .form-label {
+    font-weight: bold;
+    color: var(--primary-blue);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .input-field:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.2);
+  }
+  
+  .text-muted {
+    color: var(--text-muted);
+    font-size: 0.9rem;
   }
   
   nav {

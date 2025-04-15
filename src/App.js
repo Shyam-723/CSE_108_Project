@@ -7,15 +7,23 @@ import './App.css';
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/student" element={<StudentView />} />
-          <Route path="/teacher" element={<TeacherView />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+    <div className="App">
+      <nav>
+        <ul>
+          <li>
+            <Link to="/login">Login</Link>
+          </li>
+          <li>
+            <Link to="/student">Student View</Link>
+          </li>
+        </ul>
+      </nav>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/student" element={<StudentView />} />
+        <Route path="/teacher" element={<TeacherView />} />
+      </Routes>
+    </div>
   );
 }
 
