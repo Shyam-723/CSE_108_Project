@@ -4,16 +4,6 @@ import { FaSignOutAlt, FaArrowAltCircleLeft } from "react-icons/fa";
 import { FaPencil } from "react-icons/fa6";
 
 
-const courses = [
-    {course: 'Physics 009', teacher: 'Susan B', time: 'TR 11:00-11:50 AM', enrolled: '5/10'},
-    {course: 'Physics 008', teacher: 'Susan B', time: 'TR 11:00-11:50 AM', enrolled: '6/10'}  
-];
-      
-const studentList = [
-    {name: 'student 1', grade: '92'}, 
-    {name: 'student 2', grade: '94'}, 
-    {name: 'student 3', grade: '87'}, 
-]; 
 
 function TeacherView() {
     const [rows, setRows] = useState([]);
@@ -32,7 +22,7 @@ function TeacherView() {
       }, []);
       
 
-    const [infoRows, setInfoRows] = useState(studentList);
+      const [infoRows, setInfoRows] = useState([]);
     const [showCourseView, setShowCourseView] = useState(true);
     const [currentCourse, setCurrentCourse] = useState('');
 
@@ -127,10 +117,24 @@ function TeacherView() {
         );
     };
     
-    const handleCourseClick = (courseName) => {
+    const handleCourseClick = async (courseName) => {
         setCurrentCourse(courseName);
         setShowCourseView(false);
-    };
+      
+        try {
+          const res = await fetch('http://localhost:5000/api/teacher/students', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ course: courseName }),
+          });
+      
+          const data = await res.json();
+          setInfoRows(data);
+        } catch (err) {
+          console.error('Error fetching students for course:', err);
+        }
+      };
+      
 
     const handleOpenEditModal = (studentName, studentGrade) => {
         console.log(`Editing student: ${studentName}`);
