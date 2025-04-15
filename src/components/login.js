@@ -48,6 +48,7 @@ export default function Login(props) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [open, setOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   const navigate = useNavigate();
 
@@ -101,33 +102,6 @@ export default function Login(props) {
         console.error('Error:', error);
         alert('Error logging in');
       });
-  };  
-
-  const validateInputs = () => {
-    const username = document.getElementById('username');
-    const password = document.getElementById('password');
-  
-    let isValid = true;
-  
-    if (!username.value || username.value.trim().length < 3) {
-      setEmailError(true);
-      setEmailErrorMessage('Please enter a valid username.');
-      isValid = false;
-    } else {
-      setEmailError(false);
-      setEmailErrorMessage('');
-    }
-  
-    if (!password.value || password.value.length < 6) {
-      setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 6 characters long.');
-      isValid = false;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage('');
-    }
-  
-    return isValid;
   };  
 
   return (

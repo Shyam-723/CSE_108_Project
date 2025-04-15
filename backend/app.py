@@ -3,7 +3,6 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-
 # Predefined users, passwords, and roles
 USERS = {
     "student": {"password": "123456", "role": "student"},
@@ -29,6 +28,7 @@ addCourse = [
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
+    
     username = data.get('username')
     password = data.get('password')
 
