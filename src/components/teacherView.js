@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FaSignOutAlt, FaArrowAltCircleLeft } from "react-icons/fa";
 import { FaPencil } from "react-icons/fa6";
 
@@ -9,34 +9,70 @@ function TeacherView() {
     const [showCourseView, setShowCourseView] = useState(true);
     const [currentCourse, setCurrentCourse] = useState('');
     const [message, setMessage] = useState('');
+    const [teacherName, setTeacherName] = useState('');
 
-    // modal  stuff
+    // modal stuff
     const [stuName, setStuName] = useState(''); 
     const [stuGrade, setStuGrade] = useState(''); 
-    const [modal, setModal] = useState(false); 
-      
-    const name = 'Susan B';
+    const [modal, setModal] = useState(false);
+    
+    // Get username from location state if available
+    const location = useLocation();
+    const username = location.state?.username || 'teacher'; // Default to 'teacher' if not provided
     
     useEffect(() => {
+        // Set the teacher name
+        setTeacherName(username);
+        
+        // Fetch teacher courses
         fetchTeacherCourses();
-    }, []);
+    }, [username]);
+
+    // Clear message after 3 seconds
+    useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => {
+                setMessage('');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
 
     const fetchTeacherCourses = () => {
-        fetch('http://localhost:5000/api/teacher/courses')
+        fetch(`http://localhost:5000/api/teacher/courses?username=${username}`)
             .then(res => res.json())
             .then(data => setRows(data))
-            .catch(err => console.error('Error fetching teacher courses:', err));
+            .catch(err => {
+                console.error('Error fetching teacher courses:', err);
+                setMessage('Error loading courses. Please try again.');
+            });
     };
 
     const fetchCourseStudents = (courseName) => {
         fetch(`http://localhost:5000/api/teacher/students/${courseName}`)
             .then(res => res.json())
-            .then(data => setInfoRows(data))
-            .catch(err => console.error('Error fetching course students:', err));
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setInfoRows(data);
+                } else {
+                    // Handle case where API returns an error message
+                    setMessage(data.message || 'No students found for this course.');
+                    setInfoRows([]);
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching course students:', err);
+                setMessage('Error loading students. Please try again.');
+            });
     };
 
     const StudentTable = (props) => {
         const {data, onStudentClick, onEditClick} = props;
+        
+        if (data.length === 0) {
+            return <p>No students found for this course.</p>;
+        }
+        
         return (
             <table>
                 <thead>
@@ -63,6 +99,11 @@ function TeacherView() {
     
     const CourseTable = (props) => {
         const {data, onCourseClick} = props;
+        
+        if (data.length === 0) {
+            return <p>No courses found. Please contact an administrator.</p>;
+        }
+        
         return (
             <table>
                 <thead>
@@ -89,7 +130,7 @@ function TeacherView() {
         );
     }
 
-    // ROW compoennt 
+    // ROW component 
     const Row = (props) => {
         const {course, teacher, time, enrolled, onClick} = props;
         return (
@@ -157,7 +198,7 @@ function TeacherView() {
         })
         .catch(err => {
             console.error('Error updating grade:', err);
-            setMessage('Error updating grade');
+            setMessage('Error updating grade. Please try again.');
         });
     }; 
 
@@ -170,7 +211,7 @@ function TeacherView() {
         <div className="app-container">
             <div id="course-container">
                 <div id="top-bar">
-                    <h1 id="welcome">Welcome {name}</h1>
+                    <h1 id="welcome">Welcome {teacherName}</h1>
                     <div className="img-container">
                         <img id="logo" src="https://nationalnutgrower.com/wp-content/uploads/2024/03/UC-Merced-logo-rectangle-1024x262.png" alt="UC Merced Logo"></img>
                     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FaSignOutAlt, FaPlus, FaMinus } from 'react-icons/fa';
 import '../App.css';
 
@@ -55,16 +55,22 @@ const CourseTable = ({ data, onDrop }) => (
       </tr>
     </thead>
     <tbody>
-      {data.map((row, index) => (
-        <Row
-          key={index}
-          course={row.course}
-          teacher={row.teacher}
-          time={row.time}
-          enrolled={row.enrolled}
-          onDrop={onDrop}
-        />
-      ))}
+      {data.length > 0 ? (
+        data.map((row, index) => (
+          <Row
+            key={index}
+            course={row.course}
+            teacher={row.teacher}
+            time={row.time}
+            enrolled={row.enrolled}
+            onDrop={onDrop}
+          />
+        ))
+      ) : (
+        <tr>
+          <td colSpan="5" style={{ textAlign: 'center' }}>No courses enrolled</td>
+        </tr>
+      )}
     </tbody>
   </table>
 );
@@ -81,17 +87,23 @@ const AddCourseTable = ({ data, onSignup }) => (
       </tr>
     </thead>
     <tbody>
-      {data.map((row, index) => (
-        <AddRow
-          key={index}
-          course={row.course}
-          teacher={row.teacher}
-          time={row.time}
-          enrolled={row.enrolled}
-          add={row.add}
-          onSignup={onSignup}
-        />
-      ))}
+      {data.length > 0 ? (
+        data.map((row, index) => (
+          <AddRow
+            key={index}
+            course={row.course}
+            teacher={row.teacher}
+            time={row.time}
+            enrolled={row.enrolled}
+            add={row.add}
+            onSignup={onSignup}
+          />
+        ))
+      ) : (
+        <tr>
+          <td colSpan="5" style={{ textAlign: 'center' }}>No courses available</td>
+        </tr>
+      )}
     </tbody>
   </table>
 );
@@ -101,8 +113,25 @@ function StudentView() {
   const [addRows, setAddRows] = useState([]);
   const [showCourseView, setShowCourseView] = useState(true);
   const [message, setMessage] = useState('');
-  const name = 'Student';
+  const [studentName, setStudentName] = useState('Student');
+  
+  // Get username from location state if available
+  const location = useLocation();
+  const username = location.state?.username || 'student'; // Default to 'student' if not provided
 
+  useEffect(() => {
+    // Set the student name
+    setStudentName(username);
+    
+    // Load initial data
+    if (showCourseView) {
+      fetchEnrolledCourses();
+    } else {
+      fetchSchoolCourses();
+    }
+  }, [username]);
+
+  // Fetch data based on view selection
   useEffect(() => {
     if (showCourseView) {
       fetchEnrolledCourses();
@@ -111,22 +140,34 @@ function StudentView() {
     }
   }, [showCourseView]);
 
+  // Clear message after 3 seconds
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
   const fetchEnrolledCourses = () => {
-    fetch('http://localhost:5000/api/student/courses')
+    fetch(`http://localhost:5000/api/student/courses?username=${username}`)
       .then((res) => res.json())
       .then((data) => setRows(data))
-      .catch((err) =>
-        console.error('Error fetching enrolled courses:', err)
-      );
+      .catch((err) => {
+        console.error('Error fetching enrolled courses:', err);
+        setMessage('Error loading courses. Please try again.');
+      });
   };
 
   const fetchSchoolCourses = () => {
     fetch('http://localhost:5000/api/school/courses')
       .then((res) => res.json())
       .then((data) => setAddRows(data))
-      .catch((err) =>
-        console.error('Error fetching school courses:', err)
-      );
+      .catch((err) => {
+        console.error('Error fetching school courses:', err);
+        setMessage('Error loading available courses. Please try again.');
+      });
   };
 
   // Handler for signing up for a course
@@ -135,7 +176,10 @@ function StudentView() {
       const response = await fetch('http://localhost:5000/api/student/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ course: courseName }),
+        body: JSON.stringify({ 
+          course: courseName,
+          username: username
+        }),
       });
       const data = await response.json();
       setMessage(data.message);
@@ -146,43 +190,39 @@ function StudentView() {
       }
     } catch (error) {
       console.error('Error signing up for course:', error);
-      setMessage('Error signing up for course');
+      setMessage('Error signing up for course. Please try again.');
     }
   };
 
+  // Handler for dropping a course
   const handleDrop = async (courseName) => {
     try {
       const response = await fetch('http://localhost:5000/api/student/drop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ course: courseName }),
+        body: JSON.stringify({ 
+          course: courseName,
+          username: username
+        }),
       });
       const data = await response.json();
       setMessage(data.message);
       if (response.ok) {
+        // Refresh course lists after successful drop
         fetchEnrolledCourses();
         fetchSchoolCourses();
       }
     } catch (error) {
       console.error('Error dropping course:', error);
-      setMessage('Error dropping course');
+      setMessage('Error dropping course. Please try again.');
     }
   };
-
-  useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => {
-        setMessage('');
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [message]);
 
   return (
     <div className="app-container">
       <div id="course-container">
         <div id="top-bar">
-          <h1 id="welcome">Welcome {name}</h1>
+          <h1 id="welcome">Welcome {studentName}</h1>
           <div className="img-container">
             <img
               id="logo"

@@ -61,9 +61,28 @@ export default function Login(props) {
   const handleSubmit = (event) => {
     event.preventDefault(); // prevent default form behavior
   
-    // if (!validateInputs()) {
-    //   return;
-    // }
+    // Reset error states
+    setEmailError(false);
+    setEmailErrorMessage('');
+    setPasswordError(false);
+    setPasswordErrorMessage('');
+
+    // Get username and password
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    // Basic validation
+    if (!username) {
+      setEmailError(true);
+      setEmailErrorMessage('Username is required');
+      return;
+    }
+    
+    if (!password) {
+      setPasswordError(true);
+      setPasswordErrorMessage('Password is required');
+      return;
+    }
   
     fetch('http://localhost:5000/api/login', {
       method: 'POST',
@@ -71,8 +90,8 @@ export default function Login(props) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        username: document.getElementById('username').value,
-        password: document.getElementById('password').value,
+        username: username,
+        password: password,
       }),
     })
       .then((response) =>
@@ -84,21 +103,29 @@ export default function Login(props) {
             props.onLogin(body.role);
           }
         
+          // Navigate with username state
           if (body.role === 'student') {
-            navigate('/student');
+            navigate('/student', { state: { username: username } });
           } else if (body.role === 'teacher') {
-            navigate('/teacher');
+            navigate('/teacher', { state: { username: username } });
+          } else if (body.role === 'admin') {
+            navigate('/admin', { state: { username: username } });
           } else {
-            alert('Logged in as admin (no redirect defined)');
+            alert('Unknown role: ' + body.role);
           }
         }
         else {
-          alert(body.message || 'Login failed');
+          // Show error message
+          setEmailError(true);
+          setPasswordError(true);
+          setEmailErrorMessage(body.message || 'Login failed');
         }
       })
       .catch((error) => {
         console.error('Error:', error);
-        alert('Error logging in');
+        setEmailError(true);
+        setPasswordError(true);
+        setEmailErrorMessage('Error connecting to server. Please try again.');
       });
   };  
 
