@@ -223,19 +223,33 @@ if __name__ == '__main__':
         db.create_all()
 
         if not User.query.first():
-            users = [
-                User(username='student', password='123456', role='student'),
-                User(username='susan', password='123456', role='teacher', display_name='Susan B'),
-                User(username='mr.b', password='123456', role='teacher', display_name='Mr.B'),
-                User(username='admin', password='123456', role='admin')
-            ]
-            courses = [
-                Course(course="Physics 009", teacher="Susan B", time="TR 11:00-11:50 AM", capacity=40),
-                Course(course="Math 131", teacher="Mr.B", time="TR 11:00-11:50 AM", capacity=30),
-                Course(course="CSE 120", teacher="Susan B", time="TR 11:00-11:50 AM", capacity=20)
-            ]
+            users = [...]
+            courses = [...]
             db.session.add_all(users + courses)
             db.session.commit()
+            
+        from random import randint
+        from faker import Faker
+
+        fake = Faker()
+
+        existing_courses = Course.query.all()
+        for course in existing_courses:
+            current_enrolled = StudentEnrollment.query.filter_by(course_id=course.id).count()
+            spots_left = course.capacity - current_enrolled
+
+            for _ in range(spots_left // 2):  # Add 50% of capacity
+                fake_name = fake.first_name()
+                fake_grade = randint(65, 100)
+                enrollment = StudentEnrollment(
+                    course_id=course.id,
+                    student_name=fake_name,
+                    grade=fake_grade
+                )
+                db.session.add(enrollment)
+
+        db.session.commit()
+        print("✅ Fake student enrollments added.")
 
     app.run(debug=True)
 
